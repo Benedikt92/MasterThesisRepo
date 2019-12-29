@@ -1,0 +1,340 @@
+> #### Approach EXAMPLE STARTS HERE ####
+> 
+> ### Helper functions ###
+> 
+> # Helper function similar to the bindColums found in FuzzyAHP library, it binds FuzzyData
+> # objects together into a single FuzzyData object by the rows
+> bindRows <- function(data1, data2) {
++   fnMin = rbind(data1@fnMin, data2@fnMin)
++   fnModal = rbind(data1@fnModal, data2@fnModal)
++   fnMax = rbind(data1@fnMax, data2@fnMax)
++   
++   return(new("FuzzyData", fnMin = fnMin, fnModal = fnModal, fnMax = fnMax))
++ }
+> 
+> # Helper function that converts a FuzzyWeights class to a FuzzyData class
+> convertFuzzyWeightsToFuzzyData <- function(fuzzyWeights) {
++   
++   for (fuzzyNumber in 1:length(fuzzyWeights@fnMin)){
++     # Extracting fnMin, fnModal and fnMax from FuzzyWeights
++     fnMinFuzzyWeights = matrix(fuzzyWeights@fnMin[c(fuzzyNumber)], nrow = 1, ncol = 1)
++     fnModalFuzzyWeights = matrix(fuzzyWeights@fnModal[c(fuzzyNumber)], nrow = 1, ncol = 1)
++     fnMaxFuzzyWeights = matrix(fuzzyWeights@fnMax[c(fuzzyNumber)], nrow = 1, ncol = 1)
++     
++     # Constructing the FuzzyData class
++     tmpFuzzyData <- new("FuzzyData", fnMin=fnMinFuzzyWeights, fnModal=fnModalFuzzyWeights, fnMax=fnMaxFuzzyWeights)
++     
++     if(fuzzyNumber > 1){
++       completeFuzzyData = bindRows(completeFuzzyData, tmpFuzzyData)
++     }
++     else {
++       completeFuzzyData = tmpFuzzyData
++     }
++   }
++   result <- completeFuzzyData
++ }
+> 
+> # Helper function that does the following:
+> # 1. Creates a matrix from the received values
+> # 2. Turns the matrix into a pairwise comparison matrix
+> # 3. Fuzzyfying the pairwise comparison matrix
+> # 4. Computing fuzzy weights for the fuzzy pairwise comparison matrix
+> computeFuzzyWeightsForValues <- function(alternativeMatrixValues, nrOfRowsAndCol) {
++   # 1. Creates a matrix from the received values
++   newMatrix = matrix(alternativeMatrixValues, nrow = nrOfRowsAndCol, ncol = nrOfRowsAndCol, byrow = TRUE)
++   
++   # 2. Turns the matrix into a pairwise comparison matrix
++   newPairwiseComparisonMatrix = pairwiseComparisonMatrix(newMatrix)
++   
++   # Computing consistency ratio of the criteria pairwise comparison
++   consistencyRatioValue = consistencyRatio(newPairwiseComparisonMatrix, print.report = TRUE)
++   print(consistencyRatioValue)
++   
++   # 3. Fuzzyfying the pairwise comparison matrix
++   fuzzyPairwiseComparisonMatrix = fuzzyPairwiseComparisonMatrix(newPairwiseComparisonMatrix)
++   print(fuzzyPairwiseComparisonMatrix)
++   
++   # 4. Computing fuzzy weights for the fuzzy pairwise comparison matrix
++   fuzzyWeights = calculateWeights(fuzzyPairwiseComparisonMatrix)
++   print(fuzzyWeights)
++   result <- fuzzyWeights
++ }
+> 
+> ### Helper functions end here ###
+> 
+> 
+> 
+> ### AHP structure ###
+> # Goal: Pick the best workflow configuration
+> 
+> # Criterias:
+> #   C1 = Execution time
+> #   C2 = Privacy
+> #   C3 = Cost
+> #   C4 = Network Bandwidth
+> #   C5 = Energy usage
+> 
+> # Alternatives:
+> #   Workflow 1: 
+> #   Workflow 2: 
+> #   Workflow 3: 
+> #   Workflow 4: 
+> #   Workflow 5: 
+> #   Workflow 6: 
+> #   Workflow 7: 
+> #   Workflow 8: 
+> 
+> ### Initialization ###
+> 
+> citation("FuzzyAHP")
+
+Caha J, Drážná A (2018). _Information about FuzzyAHP package for R (ver.0.9.1)_. R
+package version 0.9.1, <URL: http://github.com/JanCaha/FuzzyAHP/>.
+
+A BibTeX entry for LaTeX users is
+
+  @Manual{,
+    title = {Information about FuzzyAHP package for R (ver.0.9.1)},
+    author = {Jan Caha and Aneta Drážná},
+    year = {2018},
+    note = {R package version 0.9.1},
+    url = {http://github.com/JanCaha/FuzzyAHP/},
+  }
+
+> 
+> # Criteria pairwise comparison
+> criteriaMatrixValues = c("1",  "3",  "5",  "7",
++                          "1/3","1",  "3",  "5",
++                          "1/5","1/3","1",  "3", 
++                          "1/7","1/5","1/3","1")
+> 
+> # Alternative pairwise comparison in respect to each criteria
+> executionTimeComparisonMatrixValues = c("1",  "1/6", "1",   "1/7", "2", "1/7", "1/4", "1/8", 
++                                         "6",  "1",   "6",   "1",   "8", "1",   "2",   "1/2", 
++                                         "1",  "1/6", "1",   "1/6", "3", "1/6", "1/4", "1/7", 
++                                         "7",  "1",   "6",   "1",   "9", "1",   "3",   "1", 
++                                         "1/2","1/8", "1/3", "1/9", "1", "1/9", "1/6", "1/9", 
++                                         "7",  "1",   "6",   "1",   "9", "1",   "3",   "1", 
++                                         "4",  "1/2", "4",   "1/3", "6", "1/3", "1",   "1/4", 
++                                         "8",  "2",   "7",   "1",   "9", "1",   "4",   "1")
+> 
+>   
+> 
+> 
+> privacyComparisonMatrixValues = c("1",   "1/3", "1",   "1/3", "3",   "1/3", "7", "1/3", 
++                                   "3",   "1",   "3",   "1",   "7",   "1",   "9", "1", 
++                                   "1",   "1/3", "1",   "1/3", "3",   "1/3", "7", "1/3", 
++                                   "3",   "1",   "3",   "1",   "7",   "1",   "9", "1", 
++                                   "1/3", "1/7", "1/3", "1/7", "1",   "1/7", "3", "1/7", 
++                                   "3",   "1",   "3",   "1",   "7",   "1",   "9", "1", 
++                                   "1/7", "1/9", "1/7", "1/9", "1/3", "1/9", "1", "1/9", 
++                                   "3",   "1",   "3",   "1",   "7",   "1",   "9", "1")
+> 
+> costComparisonMatrixValues = c("1",   "3", "1",   "2",   "1/3", "4", "1/6", "4", 
++                                "1/3", "1", "1/4", "1",   "1/6", "1", "1/9", "1", 
++                                "1",   "4", "1",   "3",   "1/2", "5", "1/5", "5", 
++                                "1/2", "1", "1/3", "1",   "1/5", "2", "1/8", "2", 
++                                "3",   "6", "2",   "5",   "1",   "7", "1/3", "7", 
++                                "1/4", "1", "1/5", "1/2", "1/7", "1", "1/9", "1", 
++                                "6",   "9", "5",   "8",   "3",   "9", "1",   "9", 
++                                "1/4", "1", "1/5", "1/2", "1/7", "1", "1/9", "1")
+> 
+> 
+> 
+> networkBandwidthComparisonMatrixValues = c("1",   "5", "1",   "5", "2",   "5", "1/5", "1/4", 
++                                            "1/5", "1", "1/5", "1", "1/3", "1", "1/9", "1/9", 
++                                            "1",   "5", "1",   "5", "2",   "5", "1/5", "1/4", 
++                                            "1/5", "1", "1/5", "1", "1/3", "1", "1/9", "1/9", 
++                                            "1/2", "3", "1/2", "3", "1",   "3", "1/7", "1/6", 
++                                            "1/5", "1", "1/5", "1", "1/3", "1", "1/9", "1/9", 
++                                            "5",   "9", "5",   "9", "7",   "9", "1",   "1", 
++                                            "4",   "9", "4",   "9", "6",   "9", "1",   "1")
+> 
+> 
+> ### Computing weights ###
+> # Computing criteria weights
+> fuzzyCriteriaWeights = computeFuzzyWeightsForValues(criteriaMatrixValues, 4)
+Consistency ratio is: 0.0438136492311873. The pairwise comparison matrix is consistent for calculations.
+[1] 0.04381365
+              C_1           C_2           C_3     C_4
+C_1       (1;1;1)       (2;3;4)       (4;5;6) (6;7;8)
+C_2 (1/4;1/3;1/2)       (1;1;1)       (2;3;4) (4;5;6)
+C_3 (1/6;1/5;1/4) (1/4;1/3;1/2)       (1;1;1) (2;3;4)
+C_4 (1/8;1/7;1/6) (1/6;1/5;1/4) (1/4;1/3;1/2) (1;1;1)
+   [,1]                    
+w1 "(0.4795;0.5638;0.6305)"
+w2 "(0.1992;0.2634;0.3427)"
+w3 "(0.0874;0.1178;0.1615)"
+w4 "(0.0434;0.055;0.074)"  
+> 
+> # Computing alternative weights
+> fuzzyExecutionTimeWeights = computeFuzzyWeightsForValues(executionTimeComparisonMatrixValues, 8)
+Consistency ratio is: 0.0184395674512367. The pairwise comparison matrix is consistent for calculations.
+[1] 0.01843957
+            C_1           C_2           C_3           C_4     C_5           C_6           C_7
+C_1     (1;1;1) (1/7;1/6;1/5)     (1/2;1;2) (1/8;1/7;1/6) (1;2;3) (1/8;1/7;1/6) (1/5;1/4;1/3)
+C_2     (5;6;7)       (1;1;1)       (5;6;7)     (1/2;1;2) (7;8;9)     (1/2;1;2)       (1;2;3)
+C_3   (1/2;1;2) (1/7;1/6;1/5)       (1;1;1) (1/7;1/6;1/5) (2;3;4) (1/7;1/6;1/5) (1/5;1/4;1/3)
+C_4     (6;7;8)     (1/2;1;2)       (5;6;7)       (1;1;1) (8;9;9)     (1/2;1;2)       (2;3;4)
+C_5 (1/3;1/2;1) (1/9;1/8;1/7) (1/4;1/3;1/2) (1/9;1/9;1/8) (1;1;1) (1/9;1/9;1/8) (1/7;1/6;1/5)
+C_6     (6;7;8)     (1/2;1;2)       (5;6;7)     (1/2;1;2) (8;9;9)       (1;1;1)       (2;3;4)
+C_7     (3;4;5)   (1/3;1/2;1)       (3;4;5) (1/4;1/3;1/2) (5;6;7) (1/4;1/3;1/2)       (1;1;1)
+C_8     (7;8;9)       (1;2;3)       (6;7;8)     (1/2;1;2) (8;9;9)     (1/2;1;2)       (3;4;5)
+              C_8
+C_1 (1/9;1/8;1/7)
+C_2   (1/3;1/2;1)
+C_3 (1/8;1/7;1/6)
+C_4     (1/2;1;2)
+C_5 (1/9;1/9;1/8)
+C_6     (1/2;1;2)
+C_7 (1/5;1/4;1/3)
+C_8       (1;1;1)
+   [,1]                    
+w1 "(0.0219;0.0298;0.0389)"
+w2 "(0.1156;0.1741;0.252)" 
+w3 "(0.0249;0.0331;0.0434)"
+w4 "(0.1394;0.2067;0.2856)"
+w5 "(0.0157;0.0185;0.0238)"
+w6 "(0.1398;0.2067;0.2849)"
+w7 "(0.0657;0.0889;0.1248)"
+w8 "(0.1718;0.2422;0.3114)"
+> fuzzyPrivacyWeights = computeFuzzyWeightsForValues(privacyComparisonMatrixValues, 8)
+Consistency ratio is: 0.0151014004772812. The pairwise comparison matrix is consistent for calculations.
+[1] 0.0151014
+              C_1           C_2           C_3           C_4           C_5           C_6     C_7
+C_1       (1;1;1) (1/4;1/3;1/2)     (1/2;1;2) (1/4;1/3;1/2)       (2;3;4) (1/4;1/3;1/2) (6;7;8)
+C_2       (2;3;4)       (1;1;1)       (2;3;4)     (1/2;1;2)       (6;7;8)     (1/2;1;2) (8;9;9)
+C_3     (1/2;1;2) (1/4;1/3;1/2)       (1;1;1) (1/4;1/3;1/2)       (2;3;4) (1/4;1/3;1/2) (6;7;8)
+C_4       (2;3;4)     (1/2;1;2)       (2;3;4)       (1;1;1)       (6;7;8)     (1/2;1;2) (8;9;9)
+C_5 (1/4;1/3;1/2) (1/8;1/7;1/6) (1/4;1/3;1/2) (1/8;1/7;1/6)       (1;1;1) (1/8;1/7;1/6) (2;3;4)
+C_6       (2;3;4)     (1/2;1;2)       (2;3;4)     (1/2;1;2)       (6;7;8)       (1;1;1) (8;9;9)
+C_7 (1/8;1/7;1/6) (1/9;1/9;1/8) (1/8;1/7;1/6) (1/9;1/9;1/8) (1/4;1/3;1/2) (1/9;1/9;1/8) (1;1;1)
+C_8       (2;3;4)     (1/2;1;2)       (2;3;4)     (1/2;1;2)       (6;7;8)     (1/2;1;2) (8;9;9)
+              C_8
+C_1 (1/4;1/3;1/2)
+C_2     (1/2;1;2)
+C_3 (1/4;1/3;1/2)
+C_4     (1/2;1;2)
+C_5 (1/8;1/7;1/6)
+C_6     (1/2;1;2)
+C_7 (1/9;1/9;1/8)
+C_8       (1;1;1)
+   [,1]                    
+w1 "(0.0547;0.0766;0.1085)"
+w2 "(0.1309;0.2002;0.2814)"
+w3 "(0.0543;0.0766;0.11)"  
+w4 "(0.1321;0.2002;0.2783)"
+w5 "(0.0234;0.0299;0.0382)"
+w6 "(0.1331;0.2002;0.277)" 
+w7 "(0.0144;0.0162;0.0192)"
+w8 "(0.1336;0.2002;0.2765)"
+> fuzzyCostWeights = computeFuzzyWeightsForValues(costComparisonMatrixValues, 8)
+Consistency ratio is: 0.0201664862708465. The pairwise comparison matrix is consistent for calculations.
+[1] 0.02016649
+              C_1       C_2           C_3         C_4           C_5       C_6           C_7
+C_1       (1;1;1)   (2;3;4)     (1/2;1;2)     (1;2;3) (1/4;1/3;1/2)   (3;4;5) (1/7;1/6;1/5)
+C_2 (1/4;1/3;1/2)   (1;1;1) (1/5;1/4;1/3)   (1/2;1;2) (1/7;1/6;1/5) (1/2;1;2) (1/9;1/9;1/8)
+C_3     (1/2;1;2)   (3;4;5)       (1;1;1)     (2;3;4)   (1/3;1/2;1)   (4;5;6) (1/6;1/5;1/4)
+C_4   (1/3;1/2;1) (1/2;1;2) (1/4;1/3;1/2)     (1;1;1) (1/6;1/5;1/4)   (1;2;3) (1/9;1/8;1/7)
+C_5       (2;3;4)   (5;6;7)       (1;2;3)     (4;5;6)       (1;1;1)   (6;7;8) (1/4;1/3;1/2)
+C_6 (1/5;1/4;1/3) (1/2;1;2) (1/6;1/5;1/4) (1/3;1/2;1) (1/8;1/7;1/6)   (1;1;1) (1/9;1/9;1/8)
+C_7       (5;6;7)   (8;9;9)       (4;5;6)     (7;8;9)       (2;3;4)   (8;9;9)       (1;1;1)
+C_8 (1/5;1/4;1/3) (1/2;1;2) (1/6;1/5;1/4) (1/3;1/2;1) (1/8;1/7;1/6) (1/2;1;2) (1/9;1/9;1/8)
+          C_8
+C_1   (3;4;5)
+C_2 (1/2;1;2)
+C_3   (4;5;6)
+C_4   (1;2;3)
+C_5   (6;7;8)
+C_6 (1/2;1;2)
+C_7   (8;9;9)
+C_8   (1;1;1)
+   [,1]                    
+w1 "(0.0683;0.0989;0.1386)"
+w2 "(0.0248;0.0357;0.0547)"
+w3 "(0.0898;0.1228;0.1714)"
+w4 "(0.0318;0.0481;0.0731)"
+w5 "(0.1701;0.2178;0.2675)"
+w6 "(0.0217;0.0302;0.0455)"
+w7 "(0.3683;0.4164;0.4453)"
+w8 "(0.0216;0.0302;0.0458)"
+> fuzzyNetworkBandwidthWeights = computeFuzzyWeightsForValues(networkBandwidthComparisonMatrixValues, 8)
+Consistency ratio is: 0.0233015860460612. The pairwise comparison matrix is consistent for calculations.
+[1] 0.02330159
+              C_1       C_2           C_3       C_4           C_5       C_6           C_7
+C_1       (1;1;1)   (4;5;6)     (1/2;1;2)   (4;5;6)       (1;2;3)   (4;5;6) (1/6;1/5;1/4)
+C_2 (1/6;1/5;1/4)   (1;1;1) (1/6;1/5;1/4) (1/2;1;2) (1/4;1/3;1/2) (1/2;1;2) (1/9;1/9;1/8)
+C_3     (1/2;1;2)   (4;5;6)       (1;1;1)   (4;5;6)       (1;2;3)   (4;5;6) (1/6;1/5;1/4)
+C_4 (1/6;1/5;1/4) (1/2;1;2) (1/6;1/5;1/4)   (1;1;1) (1/4;1/3;1/2) (1/2;1;2) (1/9;1/9;1/8)
+C_5   (1/3;1/2;1)   (2;3;4)   (1/3;1/2;1)   (2;3;4)       (1;1;1)   (2;3;4) (1/8;1/7;1/6)
+C_6 (1/6;1/5;1/4) (1/2;1;2) (1/6;1/5;1/4) (1/2;1;2) (1/4;1/3;1/2)   (1;1;1) (1/9;1/9;1/8)
+C_7       (4;5;6)   (8;9;9)       (4;5;6)   (8;9;9)       (6;7;8)   (8;9;9)       (1;1;1)
+C_8       (3;4;5)   (8;9;9)       (3;4;5)   (8;9;9)       (5;6;7)   (8;9;9)     (1/2;1;2)
+              C_8
+C_1 (1/5;1/4;1/3)
+C_2 (1/9;1/9;1/8)
+C_3 (1/5;1/4;1/3)
+C_4 (1/9;1/9;1/8)
+C_5 (1/7;1/6;1/5)
+C_6 (1/9;1/9;1/8)
+C_7     (1/2;1;2)
+C_8       (1;1;1)
+   [,1]                    
+w1 "(0.0761;0.1061;0.1446)"
+w2 "(0.0196;0.026;0.0371)" 
+w3 "(0.0764;0.1061;0.144)" 
+w4 "(0.0196;0.026;0.0373)" 
+w5 "(0.0448;0.0615;0.0892)"
+w6 "(0.0195;0.026;0.0374)" 
+w7 "(0.2784;0.3363;0.3866)"
+w8 "(0.2528;0.312;0.3641)" 
+> 
+> # Fuzzy weights are converted to Fuzzy data
+> fuzzyExecutionTimeData = convertFuzzyWeightsToFuzzyData(fuzzyExecutionTimeWeights)
+> fuzzyPrivacyData = convertFuzzyWeightsToFuzzyData(fuzzyPrivacyWeights)
+> fuzzyCostData = convertFuzzyWeightsToFuzzyData(fuzzyCostWeights)
+> fuzzyNetworkBandwidthData = convertFuzzyWeightsToFuzzyData(fuzzyNetworkBandwidthWeights)
+> 
+> # Merging the weights together before the final computations
+> data = bindColums(fuzzyExecutionTimeData, fuzzyPrivacyData)
+> data = bindColums(data, fuzzyCostData)
+> data = bindColums(data, fuzzyNetworkBandwidthData)
+> 
+> result = calculateAHP(fuzzyCriteriaWeights, data)
+> print(result)
+     [,1]                    
+[1,] "(0.0307;0.0545;0.0948)"
+[2,] "(0.0845;0.1565;0.2669)"
+[3,] "(0.0339;0.0591;0.1034)"
+[4,] "(0.0968;0.1763;0.29)"  
+[5,] "(0.029;0.0474;0.0779)" 
+[6,] "(0.0963;0.1742;0.2846)"
+[7,] "(0.0787;0.1219;0.1858)"
+[8,] "(0.1219;0.21;0.3254)"  
+> 
+> # Defuzzyfy before ranking
+> defuzzified = defuzziffy(result, "Yager")
+> print(defuzzified)
+           [,1]
+[1,] 0.05996633
+[2,] 0.16932544
+[3,] 0.06549345
+[4,] 0.18770710
+[5,] 0.05141240
+[6,] 0.18505221
+[7,] 0.12879281
+[8,] 0.21908400
+> 
+> rank = compareResults(defuzzified)
+> print(rank)
+     [,1]
+[1,]    7
+[2,]    4
+[3,]    6
+[4,]    2
+[5,]    8
+[6,]    3
+[7,]    5
+[8,]    1
+> 
+> #### Approach EXAMPLE ENDS HERE ####
