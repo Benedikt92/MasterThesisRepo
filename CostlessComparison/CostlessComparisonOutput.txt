@@ -1,0 +1,485 @@
+> #### Evaluation EXAMPLE STARTS HERE ####
+> 
+> ### Helper functions ###
+> 
+> # Helper function similar to the bindColums found in FuzzyAHP library, it binds FuzzyData
+> # objects together into a single FuzzyData object by the rows
+> bindRows <- function(data1, data2) {
++   fnMin = rbind(data1@fnMin, data2@fnMin)
++   fnModal = rbind(data1@fnModal, data2@fnModal)
++   fnMax = rbind(data1@fnMax, data2@fnMax)
++   
++   return(new("FuzzyData", fnMin = fnMin, fnModal = fnModal, fnMax = fnMax))
++ }
+> 
+> # Helper function that converts a FuzzyWeights class to a FuzzyData class
+> convertFuzzyWeightsToFuzzyData <- function(fuzzyWeights) {
++   
++   for (fuzzyNumber in 1:length(fuzzyWeights@fnMin)){
++     # Extracting fnMin, fnModal and fnMax from FuzzyWeights
++     fnMinFuzzyWeights = matrix(fuzzyWeights@fnMin[c(fuzzyNumber)], nrow = 1, ncol = 1)
++     fnModalFuzzyWeights = matrix(fuzzyWeights@fnModal[c(fuzzyNumber)], nrow = 1, ncol = 1)
++     fnMaxFuzzyWeights = matrix(fuzzyWeights@fnMax[c(fuzzyNumber)], nrow = 1, ncol = 1)
++     
++     # Constructing the FuzzyData class
++     tmpFuzzyData <- new("FuzzyData", fnMin=fnMinFuzzyWeights, fnModal=fnModalFuzzyWeights, fnMax=fnMaxFuzzyWeights)
++     
++     if(fuzzyNumber > 1){
++       completeFuzzyData = bindRows(completeFuzzyData, tmpFuzzyData)
++     }
++     else {
++       completeFuzzyData = tmpFuzzyData
++     }
++   }
++   result <- completeFuzzyData
++ }
+> 
+> # Helper function that does the following:
+> # 1. Creates a matrix from the received values
+> # 2. Turns the matrix into a pairwise comparison matrix
+> # 3. Fuzzyfying the pairwise comparison matrix
+> # 4. Computing fuzzy weights for the fuzzy pairwise comparison matrix
+> computeFuzzyWeightsForValues <- function(alternativeMatrixValues, nrOfRowsAndCol) {
++   # 1. Creates a matrix from the received values
++   newMatrix = matrix(alternativeMatrixValues, nrow = nrOfRowsAndCol, ncol = nrOfRowsAndCol, byrow = TRUE)
++   
++   # 2. Turns the matrix into a pairwise comparison matrix
++   newPairwiseComparisonMatrix = pairwiseComparisonMatrix(newMatrix)
++   
++   # Computing consistency ratio of the criteria pairwise comparison
++   #consistencyRatioValue = consistencyRatio(newPairwiseComparisonMatrix, print.report = TRUE)
++   #print(consistencyRatioValue)
++   
++   # 3. Fuzzyfying the pairwise comparison matrix
++   fuzzyPairwiseComparisonMatrix = fuzzyPairwiseComparisonMatrix(newPairwiseComparisonMatrix)
++   print(fuzzyPairwiseComparisonMatrix)
++   
++   # 4. Computing fuzzy weights for the fuzzy pairwise comparison matrix
++   fuzzyWeights = calculateWeights(fuzzyPairwiseComparisonMatrix)
++   print(fuzzyWeights)
++   result <- fuzzyWeights
++ }
+> 
+> ### Helper functions end here ###
+> 
+> 
+> 
+> ### AHP structure ###
+> # Goal: Pick the best workflow configuration
+> 
+> # Criterias:
+> #   C1 = Execution time
+> #   C2 = Cost
+> 
+> 
+> # Alternatives:
+> #   Workflow 1:  (f1 @ C) (f2 @ C) (f3 @ C | f4 @ C | f5 @ C)
+> #   Workflow 2:  (f1 @ C) (f2 @ C) (f3 @ C | f4 @ C) (f5 @ C)
+> #   Workflow 3:  (f1 @ C) (f2 @ C) (f3 @ C) (f4 @ C | f5 @ C)
+> #   Workflow 4:  (f1 @ C) (f2 @ C) (f3 @ C) (f4 @ C) (f5 @ C)
+> #   Workflow 5:  (f1 @ C) (f2 @ C | f3 @ C | f4 @ C) (f5 @ C)
+> #   Workflow 6:  (f1 @ C) (f2 @ C | f3 @ C | f4 @ C | f5 @ C)
+> #   Workflow 7:  (f1 @ C) (f2 @ C | f3 @ C) (f4 @ C | f5 @ C)
+> #   Workflow 8:  (f1 @ C) (f2 @ C | f3 @ C) (f4 @ C) (f5 @ C)
+> #   Workflow 9:  (f1 @ E) (f2 @ C) (f3 @ C | f4 @ C | f5 @ C)
+> #   Workflow 10: (f1 @ E) (f2 @ C) (f3 @ C | f4 @ C) (f5 @ C)
+> #   Workflow 11: (f1 @ E) (f2 @ C) (f3 @ C) (f4 @ C | f5 @ C)
+> #   Workflow 12: (f1 @ E) (f2 @ C) (f3 @ C) (f4 @ C) (f5 @ C)
+> #   Workflow 13: (f1 @ E) (f2 @ C | f3 @ C | f4 @ C) (f5 @ C)
+> #   Workflow 14: (f1 @ E) (f2 @ C | f3 @ C | f4 @ C | f5 @ C)
+> #   Workflow 15: (f1 @ E) (f2 @ C | f3 @ C) (f4 @ C | f5 @ C)
+> #   Workflow 16: (f1 @ E) (f2 @ C | f3 @ C) (f4 @ C) (f5 @ C)
+> 
+> 
+> 
+> ### Initialization ###
+> 
+> citation("FuzzyAHP")
+
+Caha J, Drážná A (2018). _Information about FuzzyAHP package for R (ver.0.9.1)_. R package version 0.9.1, <URL: http://github.com/JanCaha/FuzzyAHP/>.
+
+A BibTeX entry for LaTeX users is
+
+  @Manual{,
+    title = {Information about FuzzyAHP package for R (ver.0.9.1)},
+    author = {Jan Caha and Aneta Drážná},
+    year = {2018},
+    note = {R package version 0.9.1},
+    url = {http://github.com/JanCaha/FuzzyAHP/},
+  }
+
+> require(FuzzyAHP)
+> 
+> # Pairwise comparison for criteria
+> criteriaMatrixValues1 = c("1", "4",
++                          "1/4", "1")
+> criteriaMatrixValues2 = c("1", "3",
++                          "1/3", "1")
+> criteriaMatrixValues3 = c("1", "2",
++                          "1/2", "1")
+> criteriaMatrixValues4 = c("1", "1",
++                          "1", "1")
+> criteriaMatrixValues5 = c("1", "1/2",
++                          "2", "1")
+> criteriaMatrixValues6 = c("1", "1/3",
++                          "3", "1")
+> criteriaMatrixValues7 = c("1", "1/4",
++                          "4", "1")
+> 
+> # Alternative pairwise comparison in respect to each criteria
+> executionTimeComparisonMatrixValues = c("1", "1", "1", "1/4", "1", "1", "1", "1", "5", "6", "6", "1", "6", "6", "6", "6", 
++                                         "1", "1", "1", "1/5", "1", "1", "1", "1", "4", "5", "5", "1", "5", "5", "5", "5", 
++                                         "1", "1", "1", "1/5", "1", "1", "1", "1", "4", "5", "5", "1", "5", "5", "5", "5", 
++                                         "4", "5", "5", "1", "5", "5", "5", "5", "9", "9", "9", "5", "9", "9", "9", "9", 
++                                         "1", "1", "1", "1/5", "1", "1", "1", "1", "4", "5", "5", "1", "5", "5", "5", "5", 
++                                         "1", "1", "1", "1/5", "1", "1", "1", "1", "4", "5", "5", "1", "5", "5", "5", "5", 
++                                         "1", "1", "1", "1/5", "1", "1", "1", "1", "4", "5", "5", "1", "5", "5", "5", "5", 
++                                         "1", "1", "1", "1/5", "1", "1", "1", "1", "4", "5", "5", "1", "5", "5", "5", "5", 
++                                         "1/5", "1/4", "1/4", "1/9", "1/4", "1/4", "1/4", "1/4", "1", "1", "1", "1/4", "1", "1", "1", "1", 
++                                         "1/6", "1/5", "1/5", "1/9", "1/5", "1/5", "1/5", "1/5", "1", "1", "1", "1/5", "1", "1", "1", "1", 
++                                         "1/6", "1/5", "1/5", "1/9", "1/5", "1/5", "1/5", "1/5", "1", "1", "1", "1/5", "1", "1", "1", "1", 
++                                         "1", "1", "1", "1/5", "1", "1", "1", "1", "4", "5", "5", "1", "5", "5", "5", "5", 
++                                         "1/6", "1/5", "1/5", "1/9", "1/5", "1/5", "1/5", "1/5", "1", "1", "1", "1/5", "1", "1", "1", "1", 
++                                         "1/6", "1/5", "1/5", "1/9", "1/5", "1/5", "1/5", "1/5", "1", "1", "1", "1/5", "1", "1", "1", "1", 
++                                         "1/6", "1/5", "1/5", "1/9", "1/5", "1/5", "1/5", "1/5", "1", "1", "1", "1/5", "1", "1", "1", "1", 
++                                         "1/6", "1/5", "1/5", "1/9", "1/5", "1/5", "1/5", "1/5", "1", "1", "1", "1/5", "1", "1", "1", "1")
+> 
+> 
+> costComparisonMatrixValues = c("1", "2", "2", "5", "1", "1/2", "1", "2", "1/3", "1", "1", "2", "1/3", "1/5", "1/3", "1", 
++                                "1/2", "1", "1", "2", "1/2", "1/5", "1/2", "1", "1/5", "1/3", "1/3", "1", "1/5", "1/8", "1/5", "1/3", 
++                                "1/2", "1", "1", "2", "1/2", "1/5", "1/2", "1", "1/5", "1/3", "1/3", "1", "1/5", "1/8", "1/5", "1/3", 
++                                "1/5", "1/2", "1/2", "1", "1/5", "1/7", "1/5", "1/2", "1/8", "1/5", "1/5", "1/3", "1/8", "1/9", "1/8", "1/5", 
++                                "1", "2", "2", "5", "1", "1/2", "1", "2", "1/3", "1", "1", "2", "1/3", "1/5", "1/3", "1", 
++                                "2", "5", "5", "7", "2", "1", "2", "5", "1", "2", "2", "5", "1", "1/3", "1", "2", 
++                                "1", "2", "2", "5", "1", "1/2", "1", "2", "1/3", "1", "1", "2", "1/3", "1/5", "1/3", "1", 
++                                "1/2", "1", "1", "2", "1/2", "1/5", "1/2", "1", "1/5", "1/3", "1/3", "1", "1/5", "1/8", "1/5", "1/3", 
++                                "3", "5", "5", "8", "3", "1", "3", "5", "1", "2", "2", "5", "1", "1/2", "1", "2", 
++                                "1", "3", "3", "5", "1", "1/2", "1", "3", "1/2", "1", "1", "2", "1/2", "1/5", "1/2", "1", 
++                                "1", "3", "3", "5", "1", "1/2", "1", "3", "1/2", "1", "1", "2", "1/2", "1/5", "1/2", "1", 
++                                "1/2", "1", "1", "3", "1/2", "1/5", "1/2", "1", "1/5", "1/2", "1/2", "1", "1/5", "1/7", "1/5", "1/2", 
++                                "3", "5", "5", "8", "3", "1", "3", "5", "1", "2", "2", "5", "1", "1/2", "1", "2", 
++                                "5", "8", "8", "9", "5", "3", "5", "8", "2", "5", "5", "7", "2", "1", "2", "5", 
++                                "3", "5", "5", "8", "3", "1", "3", "5", "1", "2", "2", "5", "1", "1/2", "1", "2", 
++                                "1", "3", "3", "5", "1", "1/2", "1", "3", "1/2", "1", "1", "2", "1/2", "1/5", "1/2", "1")
+> 
+> 
+> 
+> 
+> ### Computing weights ###
+> # Computing criteria weights
+> fuzzyCriteriaWeights1 = computeFuzzyWeightsForValues(criteriaMatrixValues1, 2)
+              C_1     C_2
+C_1       (1;1;1) (3;4;5)
+C_2 (1/5;1/4;1/3) (1;1;1)
+   [,1]               
+w1 "(0.75;0.8;0.8333)"
+w2 "(0.1667;0.2;0.25)"
+> fuzzyCriteriaWeights2 = computeFuzzyWeightsForValues(criteriaMatrixValues2, 2)
+              C_1     C_2
+C_1       (1;1;1) (2;3;4)
+C_2 (1/4;1/3;1/2) (1;1;1)
+   [,1]               
+w1 "(0.6667;0.75;0.8)"
+w2 "(0.2;0.25;0.3333)"
+> fuzzyCriteriaWeights3 = computeFuzzyWeightsForValues(criteriaMatrixValues3, 2)
+            C_1     C_2
+C_1     (1;1;1) (1;2;3)
+C_2 (1/3;1/2;1) (1;1;1)
+   [,1]               
+w1 "(0.5;0.6667;0.75)"
+w2 "(0.25;0.3333;0.5)"
+> fuzzyCriteriaWeights4 = computeFuzzyWeightsForValues(criteriaMatrixValues4, 2)
+          C_1       C_2
+C_1   (1;1;1) (1/2;1;2)
+C_2 (1/2;1;2)   (1;1;1)
+   [,1]                 
+w1 "(0.3333;0.5;0.6667)"
+w2 "(0.3333;0.5;0.6667)"
+> fuzzyCriteriaWeights5 = computeFuzzyWeightsForValues(criteriaMatrixValues5, 2)
+        C_1         C_2
+C_1 (1;1;1) (1/3;1/2;1)
+C_2 (1;2;3)     (1;1;1)
+   [,1]               
+w1 "(0.25;0.3333;0.5)"
+w2 "(0.5;0.6667;0.75)"
+> fuzzyCriteriaWeights6 = computeFuzzyWeightsForValues(criteriaMatrixValues6, 2)
+        C_1           C_2
+C_1 (1;1;1) (1/4;1/3;1/2)
+C_2 (2;3;4)       (1;1;1)
+   [,1]               
+w1 "(0.2;0.25;0.3333)"
+w2 "(0.6667;0.75;0.8)"
+> fuzzyCriteriaWeights7 = computeFuzzyWeightsForValues(criteriaMatrixValues7, 2)
+        C_1           C_2
+C_1 (1;1;1) (1/5;1/4;1/3)
+C_2 (3;4;5)       (1;1;1)
+   [,1]               
+w1 "(0.1667;0.2;0.25)"
+w2 "(0.75;0.8;0.8333)"
+> 
+> # Computing alternative weights
+> fuzzyExecutionTimeWeights = computeFuzzyWeightsForValues(executionTimeComparisonMatrixValues, 16)
+               C_1           C_2           C_3           C_4           C_5           C_6           C_7           C_8       C_9      C_10      C_11          C_12      C_13      C_14
+C_1        (1;1;1)     (1/2;1;2)     (1/2;1;2) (1/5;1/4;1/3)     (1/2;1;2)     (1/2;1;2)     (1/2;1;2)     (1/2;1;2)   (4;5;6)   (5;6;7)   (5;6;7)     (1/2;1;2)   (5;6;7)   (5;6;7)
+C_2      (1/2;1;2)       (1;1;1)     (1/2;1;2) (1/6;1/5;1/4)     (1/2;1;2)     (1/2;1;2)     (1/2;1;2)     (1/2;1;2)   (3;4;5)   (4;5;6)   (4;5;6)     (1/2;1;2)   (4;5;6)   (4;5;6)
+C_3      (1/2;1;2)     (1/2;1;2)       (1;1;1) (1/6;1/5;1/4)     (1/2;1;2)     (1/2;1;2)     (1/2;1;2)     (1/2;1;2)   (3;4;5)   (4;5;6)   (4;5;6)     (1/2;1;2)   (4;5;6)   (4;5;6)
+C_4        (3;4;5)       (4;5;6)       (4;5;6)       (1;1;1)       (4;5;6)       (4;5;6)       (4;5;6)       (4;5;6)   (8;9;9)   (8;9;9)   (8;9;9)       (4;5;6)   (8;9;9)   (8;9;9)
+C_5      (1/2;1;2)     (1/2;1;2)     (1/2;1;2) (1/6;1/5;1/4)       (1;1;1)     (1/2;1;2)     (1/2;1;2)     (1/2;1;2)   (3;4;5)   (4;5;6)   (4;5;6)     (1/2;1;2)   (4;5;6)   (4;5;6)
+C_6      (1/2;1;2)     (1/2;1;2)     (1/2;1;2) (1/6;1/5;1/4)     (1/2;1;2)       (1;1;1)     (1/2;1;2)     (1/2;1;2)   (3;4;5)   (4;5;6)   (4;5;6)     (1/2;1;2)   (4;5;6)   (4;5;6)
+C_7      (1/2;1;2)     (1/2;1;2)     (1/2;1;2) (1/6;1/5;1/4)     (1/2;1;2)     (1/2;1;2)       (1;1;1)     (1/2;1;2)   (3;4;5)   (4;5;6)   (4;5;6)     (1/2;1;2)   (4;5;6)   (4;5;6)
+C_8      (1/2;1;2)     (1/2;1;2)     (1/2;1;2) (1/6;1/5;1/4)     (1/2;1;2)     (1/2;1;2)     (1/2;1;2)       (1;1;1)   (3;4;5)   (4;5;6)   (4;5;6)     (1/2;1;2)   (4;5;6)   (4;5;6)
+C_9  (1/6;1/5;1/4) (1/5;1/4;1/3) (1/5;1/4;1/3) (1/9;1/9;1/8) (1/5;1/4;1/3) (1/5;1/4;1/3) (1/5;1/4;1/3) (1/5;1/4;1/3)   (1;1;1) (1/2;1;2) (1/2;1;2) (1/5;1/4;1/3) (1/2;1;2) (1/2;1;2)
+C_10 (1/7;1/6;1/5) (1/6;1/5;1/4) (1/6;1/5;1/4) (1/9;1/9;1/8) (1/6;1/5;1/4) (1/6;1/5;1/4) (1/6;1/5;1/4) (1/6;1/5;1/4) (1/2;1;2)   (1;1;1) (1/2;1;2) (1/6;1/5;1/4) (1/2;1;2) (1/2;1;2)
+C_11 (1/7;1/6;1/5) (1/6;1/5;1/4) (1/6;1/5;1/4) (1/9;1/9;1/8) (1/6;1/5;1/4) (1/6;1/5;1/4) (1/6;1/5;1/4) (1/6;1/5;1/4) (1/2;1;2) (1/2;1;2)   (1;1;1) (1/6;1/5;1/4) (1/2;1;2) (1/2;1;2)
+C_12     (1/2;1;2)     (1/2;1;2)     (1/2;1;2) (1/6;1/5;1/4)     (1/2;1;2)     (1/2;1;2)     (1/2;1;2)     (1/2;1;2)   (3;4;5)   (4;5;6)   (4;5;6)       (1;1;1)   (4;5;6)   (4;5;6)
+C_13 (1/7;1/6;1/5) (1/6;1/5;1/4) (1/6;1/5;1/4) (1/9;1/9;1/8) (1/6;1/5;1/4) (1/6;1/5;1/4) (1/6;1/5;1/4) (1/6;1/5;1/4) (1/2;1;2) (1/2;1;2) (1/2;1;2) (1/6;1/5;1/4)   (1;1;1) (1/2;1;2)
+C_14 (1/7;1/6;1/5) (1/6;1/5;1/4) (1/6;1/5;1/4) (1/9;1/9;1/8) (1/6;1/5;1/4) (1/6;1/5;1/4) (1/6;1/5;1/4) (1/6;1/5;1/4) (1/2;1;2) (1/2;1;2) (1/2;1;2) (1/6;1/5;1/4) (1/2;1;2)   (1;1;1)
+C_15 (1/7;1/6;1/5) (1/6;1/5;1/4) (1/6;1/5;1/4) (1/9;1/9;1/8) (1/6;1/5;1/4) (1/6;1/5;1/4) (1/6;1/5;1/4) (1/6;1/5;1/4) (1/2;1;2) (1/2;1;2) (1/2;1;2) (1/6;1/5;1/4) (1/2;1;2) (1/2;1;2)
+C_16 (1/7;1/6;1/5) (1/6;1/5;1/4) (1/6;1/5;1/4) (1/9;1/9;1/8) (1/6;1/5;1/4) (1/6;1/5;1/4) (1/6;1/5;1/4) (1/6;1/5;1/4) (1/2;1;2) (1/2;1;2) (1/2;1;2) (1/6;1/5;1/4) (1/2;1;2) (1/2;1;2)
+          C_15      C_16
+C_1    (5;6;7)   (5;6;7)
+C_2    (4;5;6)   (4;5;6)
+C_3    (4;5;6)   (4;5;6)
+C_4    (8;9;9)   (8;9;9)
+C_5    (4;5;6)   (4;5;6)
+C_6    (4;5;6)   (4;5;6)
+C_7    (4;5;6)   (4;5;6)
+C_8    (4;5;6)   (4;5;6)
+C_9  (1/2;1;2) (1/2;1;2)
+C_10 (1/2;1;2) (1/2;1;2)
+C_11 (1/2;1;2) (1/2;1;2)
+C_12   (4;5;6)   (4;5;6)
+C_13 (1/2;1;2) (1/2;1;2)
+C_14 (1/2;1;2) (1/2;1;2)
+C_15   (1;1;1) (1/2;1;2)
+C_16 (1/2;1;2)   (1;1;1)
+    [,1]                    
+w1  "(0.0547;0.0859;0.1307)"
+w2  "(0.0487;0.078;0.1202)" 
+w3  "(0.0487;0.078;0.1202)" 
+w4  "(0.2049;0.2494;0.2768)"
+w5  "(0.0488;0.078;0.1197)" 
+w6  "(0.0488;0.078;0.1197)" 
+w7  "(0.0488;0.078;0.1197)" 
+w8  "(0.0488;0.078;0.1197)" 
+w9  "(0.0121;0.0186;0.0292)"
+w10 "(0.0111;0.0167;0.0255)"
+w11 "(0.0111;0.0167;0.0255)"
+w12 "(0.0487;0.078;0.1205)" 
+w13 "(0.0111;0.0167;0.0254)"
+w14 "(0.0111;0.0167;0.0254)"
+w15 "(0.0111;0.0167;0.0254)"
+w16 "(0.0111;0.0167;0.0254)"
+> fuzzyCostWeights = computeFuzzyWeightsForValues(costComparisonMatrixValues, 16)
+               C_1         C_2         C_3     C_4           C_5           C_6           C_7         C_8           C_9          C_10          C_11          C_12          C_13
+C_1        (1;1;1)     (1;2;3)     (1;2;3) (4;5;6)     (1/2;1;2)   (1/3;1/2;1)     (1/2;1;2)     (1;2;3) (1/4;1/3;1/2)     (1/2;1;2)     (1/2;1;2)       (1;2;3) (1/4;1/3;1/2)
+C_2    (1/3;1/2;1)     (1;1;1)   (1/2;1;2) (1;2;3)   (1/3;1/2;1) (1/6;1/5;1/4)   (1/3;1/2;1)   (1/2;1;2) (1/6;1/5;1/4) (1/4;1/3;1/2) (1/4;1/3;1/2)     (1/2;1;2) (1/6;1/5;1/4)
+C_3    (1/3;1/2;1)   (1/2;1;2)     (1;1;1) (1;2;3)   (1/3;1/2;1) (1/6;1/5;1/4)   (1/3;1/2;1)   (1/2;1;2) (1/6;1/5;1/4) (1/4;1/3;1/2) (1/4;1/3;1/2)     (1/2;1;2) (1/6;1/5;1/4)
+C_4  (1/6;1/5;1/4) (1/3;1/2;1) (1/3;1/2;1) (1;1;1) (1/6;1/5;1/4) (1/8;1/7;1/6) (1/6;1/5;1/4) (1/3;1/2;1) (1/9;1/8;1/7) (1/6;1/5;1/4) (1/6;1/5;1/4) (1/4;1/3;1/2) (1/9;1/8;1/7)
+C_5      (1/2;1;2)     (1;2;3)     (1;2;3) (4;5;6)       (1;1;1)   (1/3;1/2;1)     (1/2;1;2)     (1;2;3) (1/4;1/3;1/2)     (1/2;1;2)     (1/2;1;2)       (1;2;3) (1/4;1/3;1/2)
+C_6        (1;2;3)     (4;5;6)     (4;5;6) (6;7;8)       (1;2;3)       (1;1;1)       (1;2;3)     (4;5;6)     (1/2;1;2)       (1;2;3)       (1;2;3)       (4;5;6)     (1/2;1;2)
+C_7      (1/2;1;2)     (1;2;3)     (1;2;3) (4;5;6)     (1/2;1;2)   (1/3;1/2;1)       (1;1;1)     (1;2;3) (1/4;1/3;1/2)     (1/2;1;2)     (1/2;1;2)       (1;2;3) (1/4;1/3;1/2)
+C_8    (1/3;1/2;1)   (1/2;1;2)   (1/2;1;2) (1;2;3)   (1/3;1/2;1) (1/6;1/5;1/4)   (1/3;1/2;1)     (1;1;1) (1/6;1/5;1/4) (1/4;1/3;1/2) (1/4;1/3;1/2)     (1/2;1;2) (1/6;1/5;1/4)
+C_9        (2;3;4)     (4;5;6)     (4;5;6) (7;8;9)       (2;3;4)     (1/2;1;2)       (2;3;4)     (4;5;6)       (1;1;1)       (1;2;3)       (1;2;3)       (4;5;6)     (1/2;1;2)
+C_10     (1/2;1;2)     (2;3;4)     (2;3;4) (4;5;6)     (1/2;1;2)   (1/3;1/2;1)     (1/2;1;2)     (2;3;4)   (1/3;1/2;1)       (1;1;1)     (1/2;1;2)       (1;2;3)   (1/3;1/2;1)
+C_11     (1/2;1;2)     (2;3;4)     (2;3;4) (4;5;6)     (1/2;1;2)   (1/3;1/2;1)     (1/2;1;2)     (2;3;4)   (1/3;1/2;1)     (1/2;1;2)       (1;1;1)       (1;2;3)   (1/3;1/2;1)
+C_12   (1/3;1/2;1)   (1/2;1;2)   (1/2;1;2) (2;3;4)   (1/3;1/2;1) (1/6;1/5;1/4)   (1/3;1/2;1)   (1/2;1;2) (1/6;1/5;1/4)   (1/3;1/2;1)   (1/3;1/2;1)       (1;1;1) (1/6;1/5;1/4)
+C_13       (2;3;4)     (4;5;6)     (4;5;6) (7;8;9)       (2;3;4)     (1/2;1;2)       (2;3;4)     (4;5;6)     (1/2;1;2)       (1;2;3)       (1;2;3)       (4;5;6)       (1;1;1)
+C_14       (4;5;6)     (7;8;9)     (7;8;9) (8;9;9)       (4;5;6)       (2;3;4)       (4;5;6)     (7;8;9)       (1;2;3)       (4;5;6)       (4;5;6)       (6;7;8)       (1;2;3)
+C_15       (2;3;4)     (4;5;6)     (4;5;6) (7;8;9)       (2;3;4)     (1/2;1;2)       (2;3;4)     (4;5;6)     (1/2;1;2)       (1;2;3)       (1;2;3)       (4;5;6)     (1/2;1;2)
+C_16     (1/2;1;2)     (2;3;4)     (2;3;4) (4;5;6)     (1/2;1;2)   (1/3;1/2;1)     (1/2;1;2)     (2;3;4)   (1/3;1/2;1)     (1/2;1;2)     (1/2;1;2)       (1;2;3)   (1/3;1/2;1)
+              C_14          C_15          C_16
+C_1  (1/6;1/5;1/4) (1/4;1/3;1/2)     (1/2;1;2)
+C_2  (1/9;1/8;1/7) (1/6;1/5;1/4) (1/4;1/3;1/2)
+C_3  (1/9;1/8;1/7) (1/6;1/5;1/4) (1/4;1/3;1/2)
+C_4  (1/9;1/9;1/8) (1/9;1/8;1/7) (1/6;1/5;1/4)
+C_5  (1/6;1/5;1/4) (1/4;1/3;1/2)     (1/2;1;2)
+C_6  (1/4;1/3;1/2)     (1/2;1;2)       (1;2;3)
+C_7  (1/6;1/5;1/4) (1/4;1/3;1/2)     (1/2;1;2)
+C_8  (1/9;1/8;1/7) (1/6;1/5;1/4) (1/4;1/3;1/2)
+C_9    (1/3;1/2;1)     (1/2;1;2)       (1;2;3)
+C_10 (1/6;1/5;1/4)   (1/3;1/2;1)     (1/2;1;2)
+C_11 (1/6;1/5;1/4)   (1/3;1/2;1)     (1/2;1;2)
+C_12 (1/8;1/7;1/6) (1/6;1/5;1/4)   (1/3;1/2;1)
+C_13   (1/3;1/2;1)     (1/2;1;2)       (1;2;3)
+C_14       (1;1;1)       (1;2;3)       (4;5;6)
+C_15   (1/3;1/2;1)       (1;1;1)       (1;2;3)
+C_16 (1/6;1/5;1/4)   (1/3;1/2;1)       (1;1;1)
+    [,1]                    
+w1  "(0.0252;0.0437;0.0726)"
+w2  "(0.0137;0.0207;0.0331)"
+w3  "(0.0137;0.0207;0.0331)"
+w4  "(0.0086;0.011;0.0154)" 
+w5  "(0.0253;0.0437;0.0721)"
+w6  "(0.0573;0.0964;0.1423)"
+w7  "(0.0252;0.0437;0.0725)"
+w8  "(0.0136;0.0207;0.0333)"
+w9  "(0.0673;0.1076;0.157)" 
+w10 "(0.0303;0.0509;0.0869)"
+w11 "(0.0303;0.0509;0.0869)"
+w12 "(0.0151;0.0231;0.0392)"
+w13 "(0.0679;0.1076;0.1555)"
+w14 "(0.15;0.2012;0.2422)"  
+w15 "(0.0675;0.1076;0.1564)"
+w16 "(0.03;0.0509;0.0877)"  
+> 
+> # Fuzzy weights are converted to Fuzzy data
+> fuzzyExecutionTimeData = convertFuzzyWeightsToFuzzyData(fuzzyExecutionTimeWeights)
+> fuzzyCostData = convertFuzzyWeightsToFuzzyData(fuzzyCostWeights)
+> 
+> # Merging the weights together before the final computations
+> data = bindColums(fuzzyExecutionTimeData, fuzzyCostData)
+> 
+> result1 = calculateAHP(fuzzyCriteriaWeights1, data)
+> result2 = calculateAHP(fuzzyCriteriaWeights2, data)
+> result3 = calculateAHP(fuzzyCriteriaWeights3, data)
+> result4 = calculateAHP(fuzzyCriteriaWeights4, data)
+> result5 = calculateAHP(fuzzyCriteriaWeights5, data)
+> result6 = calculateAHP(fuzzyCriteriaWeights6, data)
+> result7 = calculateAHP(fuzzyCriteriaWeights7, data)
+> 
+> # Defuzzyfy before ranking
+> defuzzified1 = defuzziffy(result1, "Yager")
+> defuzzified2 = defuzziffy(result2, "Yager")
+> defuzzified3 = defuzziffy(result3, "Yager")
+> defuzzified4 = defuzziffy(result4, "Yager")
+> defuzzified5 = defuzziffy(result5, "Yager")
+> defuzzified6 = defuzziffy(result6, "Yager")
+> defuzzified7 = defuzziffy(result7, "Yager")
+> 
+> rank1 = compareResults(defuzzified1)
+> rank2 = compareResults(defuzzified2)
+> rank3 = compareResults(defuzzified3)
+> rank4 = compareResults(defuzzified4)
+> rank5 = compareResults(defuzzified5)
+> rank6 = compareResults(defuzzified6)
+> rank7 = compareResults(defuzzified7)
+> 
+> print(rank1)
+      [,1]
+ [1,]    3
+ [2,]    7
+ [3,]    7
+ [4,]    1
+ [5,]    5
+ [6,]    2
+ [7,]    4
+ [8,]    9
+ [9,]   11
+[10,]   15
+[11,]   15
+[12,]    6
+[13,]   13
+[14,]   10
+[15,]   12
+[16,]   14
+> print(rank2)
+      [,1]
+ [1,]    3
+ [2,]    7
+ [3,]    7
+ [4,]    1
+ [5,]    5
+ [6,]    2
+ [7,]    4
+ [8,]    9
+ [9,]   11
+[10,]   15
+[11,]   15
+[12,]    6
+[13,]   13
+[14,]   10
+[15,]   12
+[16,]   14
+> print(rank3)
+      [,1]
+ [1,]    4
+ [2,]    8
+ [3,]    8
+ [4,]    1
+ [5,]    6
+ [6,]    2
+ [7,]    5
+ [8,]   10
+ [9,]   11
+[10,]   15
+[11,]   15
+[12,]    7
+[13,]   13
+[14,]    3
+[15,]   12
+[16,]   14
+> print(rank4)
+      [,1]
+ [1,]    4
+ [2,]   11
+ [3,]   11
+ [4,]    1
+ [5,]    7
+ [6,]    3
+ [7,]    6
+ [8,]   13
+ [9,]    5
+[10,]   15
+[11,]   15
+[12,]   10
+[13,]    9
+[14,]    2
+[15,]    8
+[16,]   14
+> print(rank5)
+      [,1]
+ [1,]    7
+ [2,]   11
+ [3,]   11
+ [4,]    3
+ [5,]    9
+ [6,]    2
+ [7,]    8
+ [8,]   13
+ [9,]    4
+[10,]   15
+[11,]   15
+[12,]   10
+[13,]    6
+[14,]    1
+[15,]    5
+[16,]   14
+> print(rank6)
+      [,1]
+ [1,]    7
+ [2,]   14
+ [3,]   14
+ [4,]    6
+ [5,]    9
+ [6,]    2
+ [7,]    8
+ [8,]   16
+ [9,]    3
+[10,]   11
+[11,]   11
+[12,]   13
+[13,]    5
+[14,]    1
+[15,]    4
+[16,]   10
+> print(rank7)
+      [,1]
+ [1,]    7
+ [2,]   15
+ [3,]   15
+ [4,]    6
+ [5,]    9
+ [6,]    2
+ [7,]    8
+ [8,]   14
+ [9,]    3
+[10,]   11
+[11,]   11
+[12,]   13
+[13,]    5
+[14,]    1
+[15,]    4
+[16,]   10
+> 
+> #### Evaluation EXAMPLE ENDS HERE ####
