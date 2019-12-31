@@ -87,6 +87,7 @@ computeFuzzyWeightsForValues <- function(alternativeMatrixValues, nrOfRowsAndCol
 ### Initialization ###
 
 citation("FuzzyAHP")
+require(FuzzyAHP)
 
 # Criteria pairwise comparison
 criteriaMatrixValues = c("1",  "3",  "5",  "7",
