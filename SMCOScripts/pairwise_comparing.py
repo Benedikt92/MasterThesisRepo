@@ -96,11 +96,11 @@ def prepare_pairwise_comparison_for_latex(workflow_configurations, normalized_li
 print('pairwise comparing\n==============================')
 
 # Input for Approach example
-#workflow_configurations = ['(f1 @ E) (f2 @ C) (f3 @ C)', '(f1 @ C) (f2 @ C) (f3 @ C)', '(f1 @ E) (f2 @ C | f3 @ C)', '(f1 @ C) (f2 @ C | f3 @ C)', '(f1 @ E | f2 @ E) (f3 @ C)', '(f1 @ C | f2 @ C) (f3 @ C)', '(f1 @ E | f2 @ E | f3 @ E)', '(f1 @ C | f2 @ C | f3 @ C)']
-#execution_time = [20.7, 18.3, 20.4, 18, 21.4, 18, 19, 17.6]
-#cost = [151.74682, 226.74692, 126.74682, 201.74692, 76.74672, 251.74702, 0.18, 260.08042]
-#privacy = [4, 3, 4, 3, 5, 3, 6, 3]
-#network_bandwidth = [5, 10, 5, 10, 7, 10, 0, 1]
+workflow_configurations = ['(f1 @ E) (f2 @ C) (f3 @ C)', '(f1 @ C) (f2 @ C) (f3 @ C)', '(f1 @ E) (f2 @ C | f3 @ C)', '(f1 @ C) (f2 @ C | f3 @ C)', '(f1 @ E | f2 @ E) (f3 @ C)', '(f1 @ C | f2 @ C) (f3 @ C)', '(f1 @ E | f2 @ E | f3 @ E)', '(f1 @ C | f2 @ C | f3 @ C)']
+execution_time = [20.7, 18.3, 20.4, 18, 21.4, 18, 19, 17.6]
+cost = [151.74682, 226.74692, 126.74682, 201.74692, 76.74672, 251.74702, 0.18, 260.08042]
+privacy = [2, 3, 2, 3, 1, 3, 1, 3]
+network_bandwidth = [5, 10, 5, 10, 7, 10, 0, 1]
 
 # Input for Evaluation example
 #workflow_configurations =  ['(f1 @ C) (f2 @ C) (f3 @ C) (f4 @ C) (f5 @ C)', '(f1 @ E) (f2 @ C) (f3 @ C) (f4 @ C) (f5 @ C)', '(f1 @ C) (f2 @ C) (f3 @ C) (f4 @ C | f5 @ C)', '(f1 @ E) (f2 @ C) (f3 @ C) (f4 @ C | f5 @ C)', '(f1 @ C) (f2 @ C) (f3 @ C | f4 @ C) (f5 @ C)', '(f1 @ E) (f2 @ C) (f3 @ C | f4 @ C) (f5 @ C)', '(f1 @ C) (f2 @ C) (f3 @ C | f4 @ C | f5 @ C)', '(f1 @ E) (f2 @ C) (f3 @ C | f4 @ C | f5 @ C)', '(f1 @ C) (f2 @ C | f3 @ C) (f4 @ C) (f5 @ C)', '(f1 @ E) (f2 @ C | f3 @ C) (f4 @ C) (f5 @ C)', '(f1 @ C) (f2 @ C | f3 @ C) (f4 @ C | f5 @ C)', '(f1 @ E) (f2 @ C | f3 @ C) (f4 @ C | f5 @ C)', '(f1 @ C) (f2 @ C | f3 @ C | f4 @ C) (f5 @ C)', '(f1 @ E) (f2 @ C | f3 @ C | f4 @ C) (f5 @ C)', '(f1 @ C) (f2 @ C | f3 @ C | f4 @ C | f5 @ C)', '(f1 @ E) (f2 @ C | f3 @ C | f4 @ C | f5 @ C)', '(f1 @ C | f2 @ C) (f3 @ C) (f4 @ C) (f5 @ C)', '(f1 @ C | f2 @ C) (f3 @ C) (f4 @ C | f5 @ C)', '(f1 @ C | f2 @ C) (f3 @ C | f4 @ C) (f5 @ C)', '(f1 @ C | f2 @ C) (f3 @ C | f4 @ C | f5 @ C)', '(f1 @ C | f2 @ C | f3 @ C) (f4 @ C) (f5 @ C)', '(f1 @ C | f2 @ C | f3 @ C) (f4 @ C | f5 @ C)', '(f1 @ C | f2 @ C | f3 @ C | f4 @ C) (f5 @ C)', '(f1 @ C | f2 @ C | f3 @ C | f4 @ C | f5 @ C)']
@@ -110,11 +110,11 @@ print('pairwise comparing\n==============================')
 #network_bandwidth = [743, 743, 743, 743, 743, 743, 743, 743, 743, 743, 743, 743, 743, 743, 743, 743, 743, 743, 743, 743, 743, 743, 743, 743]
 
 # Input for Costless comparison example
-workflow_configurations =  ['(f1 @ C) (f2 @ C) (f3 @ C | f4 @ C | f5 @ C)', '(f1 @ C) (f2 @ C) (f3 @ C | f4 @ C) (f5 @ C)', '(f1 @ C) (f2 @ C) (f3 @ C) (f4 @ C | f5 @ C)', '(f1 @ C) (f2 @ C) (f3 @ C) (f4 @ C) (f5 @ C)', '(f1 @ C) (f2 @ C | f3 @ C | f4 @ C) (f5 @ C)', '(f1 @ C) (f2 @ C | f3 @ C | f4 @ C | f5 @ C)', '(f1 @ C) (f2 @ C | f3 @ C) (f4 @ C | f5 @ C)', '(f1 @ C) (f2 @ C | f3 @ C) (f4 @ C) (f5 @ C)', '(f1 @ E) (f2 @ C) (f3 @ C | f4 @ C | f5 @ C)', '(f1 @ E) (f2 @ C) (f3 @ C | f4 @ C) (f5 @ C)', '(f1 @ E) (f2 @ C) (f3 @ C) (f4 @ C | f5 @ C)', '(f1 @ E) (f2 @ C) (f3 @ C) (f4 @ C) (f5 @ C)', '(f1 @ E) (f2 @ C | f3 @ C | f4 @ C) (f5 @ C)', '(f1 @ E) (f2 @ C | f3 @ C | f4 @ C | f5 @ C)', '(f1 @ E) (f2 @ C | f3 @ C) (f4 @ C | f5 @ C)', '(f1 @ E) (f2 @ C | f3 @ C) (f4 @ C) (f5 @ C)']
-execution_time = [6.338, 6.405, 6.491, 5.561, 6.353, 6.286, 6.439, 6.506, 7.254, 7.321, 7.407, 6.477, 7.269, 7.202, 7.355, 7.422]
-cost = [110.7959088, 135.7959088, 135.7959088, 160.7959088, 110.7959088, 85.79590875, 110.7959088, 135.7959088, 83.8059275, 108.8059275, 108.8059275, 133.8059275, 83.8059275, 58.8059275, 83.8059275, 108.8059275]
-privacy = []
-network_bandwidth = []
+#workflow_configurations =  ['(f1 @ C) (f2 @ C) (f3 @ C | f4 @ C | f5 @ C)', '(f1 @ C) (f2 @ C) (f3 @ C | f4 @ C) (f5 @ C)', '(f1 @ C) (f2 @ C) (f3 @ C) (f4 @ C | f5 @ C)', '(f1 @ C) (f2 @ C) (f3 @ C) (f4 @ C) (f5 @ C)', '(f1 @ C) (f2 @ C | f3 @ C | f4 @ C) (f5 @ C)', '(f1 @ C) (f2 @ C | f3 @ C | f4 @ C | f5 @ C)', '(f1 @ C) (f2 @ C | f3 @ C) (f4 @ C | f5 @ C)', '(f1 @ C) (f2 @ C | f3 @ C) (f4 @ C) (f5 @ C)', '(f1 @ E) (f2 @ C) (f3 @ C | f4 @ C | f5 @ C)', '(f1 @ E) (f2 @ C) (f3 @ C | f4 @ C) (f5 @ C)', '(f1 @ E) (f2 @ C) (f3 @ C) (f4 @ C | f5 @ C)', '(f1 @ E) (f2 @ C) (f3 @ C) (f4 @ C) (f5 @ C)', '(f1 @ E) (f2 @ C | f3 @ C | f4 @ C) (f5 @ C)', '(f1 @ E) (f2 @ C | f3 @ C | f4 @ C | f5 @ C)', '(f1 @ E) (f2 @ C | f3 @ C) (f4 @ C | f5 @ C)', '(f1 @ E) (f2 @ C | f3 @ C) (f4 @ C) (f5 @ C)']
+#execution_time = [6.338, 6.405, 6.491, 5.561, 6.353, 6.286, 6.439, 6.506, 7.254, 7.321, 7.407, 6.477, 7.269, 7.202, 7.355, 7.422]
+#cost = [110.7959088, 135.7959088, 135.7959088, 160.7959088, 110.7959088, 85.79590875, 110.7959088, 135.7959088, 83.8059275, 108.8059275, 108.8059275, 133.8059275, 83.8059275, 58.8059275, 83.8059275, 108.8059275]
+#privacy = []
+#network_bandwidth = []
 
 estimates_mapping = {0.0: "1", 0.1: "1", 0.2: "2", 0.3: "3", 0.4: "4", 0.5: "5", 0.6: "6", 0.7: "7", 0.8: "8", 0.9: "9", 1.0: "9"}
 estimates_mapping_inverse = {0.0: "1", 0.1: "1", 0.2: "1/2", 0.3: "1/3", 0.4: "1/4", 0.5: "1/5", 0.6: "1/6", 0.7: "1/7", 0.8: "1/8", 0.9: "1/9", 1.0: "1/9"}
@@ -166,7 +166,7 @@ if len(privacy) > 0:
 	print('\nprivacy r script input:')
 	print(prepare_pairwise_comparison_for_script(comparison_matrix))
 	print('\nprivacy latex input')
-	print(prepare_pairwise_comparison_for_latex(workflow_configurations, normalized_list, latex_map, latex_map_inverse, False))
+	print(prepare_pairwise_comparison_for_latex(workflow_configurations, normalized_list, latex_map, latex_map_inverse, True))
 
 
 
