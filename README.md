@@ -51,22 +51,27 @@ The two versions (edge and cloud) of the first function (face detection) can be 
 The rest of the functions (f2: face-search, f3: thumbnail, f4: index-face, f5: persist-metadata) can be found in 
 https://github.com/aws-samples/aws-serverless-workshops/tree/master/ImageProcessing/src/lambda-functions 
 
-For information on how to create Lambda functions follow the tutorial provided by AWS
-https://docs.aws.amazon.com/toolkit-for-eclipse/v1/user-guide/lambda-tutorial.html
+    For information on how to create Lambda functions follow the tutorial provided by AWS
+    https://docs.aws.amazon.com/toolkit-for-eclipse/v1/user-guide/lambda-tutorial.html
+
 3.	Use Step function service to create out workflows based on the output list of workflow configurations from step 1 and the previously created Lambda functions 
 For information on how to use step functions follow the tutorial provided by AWS https://docs.aws.amazon.com/step-functions/latest/dg/tutorial-creating-lambda-state-machine.html#create-lambda-state-machine-step-4
 
-4.	The AWS Cloud Watch service is used for collecting profiling data about the functions running on both the edge and the cloud using the two workflows:
-•	(f1 @ C) (f2 @ C) (f3 @ C) (f4 @ C) (f5 @ C)
-•	(f1 @ E) (f2 @ C) (f3 @ C) (f4 @ C) (f5 @ C)
-For information on how to use AWS Cloud Watch service follow the tutorial provided by AWS
-https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Install-CloudWatch-Agent.html
-https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/metrics-collected-by-CloudWatch-agent.html
+4.	The AWS Cloud Watch service is used for collecting profiling data about the functions running on both the edge and the cloud using the two below workflows. These profiling data will be used in the next step (Third section) to estimate the execution time, cost, privacy and network bandwidth for each workflow configuration.
+
+    •	(f1 @ C) (f2 @ C) (f3 @ C) (f4 @ C) (f5 @ C)
+
+    •	(f1 @ E) (f2 @ C) (f3 @ C) (f4 @ C) (f5 @ C)
+
+    In addition, the profiling data of all different combinations of fused functions -which were implemented in aws step functions- in the workflows are also collected to      compare   the estimates with actual measured outcome.
+    For information on how to use AWS Cloud Watch service follow the tutorial provided by AWS
+    https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Install-CloudWatch-Agent.html
+   https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/metrics-collected-by-CloudWatch-agent.html
 
 
 Third: Generating the rank of the workflow configurations using fuzzy computations 
 
-1.	For each of the workflow configurations generated in step 1 in the second sections above, the execution time, cost, privacy and network bandwidth are calculated using predefined models.
+1.	For each of the workflow configurations generated in step 1 in the second sections above, the execution time, cost, privacy and network bandwidth are calculated using predefined models and the profiling data collected earlier.
 
 2.	The output of step 1 is then used as an input to “pairwise_comparing.py” in the “SMCOScripts” folder to produce the Comparison Matrices.
 
